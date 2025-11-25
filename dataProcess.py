@@ -153,8 +153,8 @@ def process_data(df):
 # 10️⃣ Ana Program
 # -------------------------------
 if __name__ == "__main__":
-    input_path = os.path.join("data", "skill_builder_data_corrected_collapsed.csv")
-    output_path = os.path.join("data", "output", "processed_skill_builder.csv")
+    input_path = os.path.join("app/data", "skill_builder_data_corrected_collapsed.csv")
+    output_path = os.path.join("app/data", "output", "processed_skill_builder.csv")
 
     print("Assistments KDS veri ön işleme başlıyor...")
     print("Girdi dosyası:", input_path)

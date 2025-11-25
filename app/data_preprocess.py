@@ -4,8 +4,8 @@ import numpy as np
 
 # --- 1️⃣ Sabitler ve Yollar (Kök Dizine Göre Ayarlandı) ---
 # data/skill_builder_data.csv dosyasının projenin kök dizinine göre yolu
-INPUT_PATH = os.path.join("../data", "skill_builder_data.csv")
-OUTPUT_DIR = os.path.join("../data", "output")
+INPUT_PATH = os.path.join("../app/data", "skill_builder_data.csv")
+OUTPUT_DIR = os.path.join("../app/data", "output")
 OUTPUT_PATH = os.path.join(OUTPUT_DIR, "processed_skill_builder.csv")
 
 # --- 2️⃣ Kritik Sütunlar ---

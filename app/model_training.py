@@ -9,8 +9,8 @@ import pickle
 import json
 
 # --- Sabitler ve Yollar
-INPUT_FILE = os.path.join("../data", "output", "processed_skill_builder.csv")  # Yol düzeltildi
-MODEL_OUTPUT_DIR = os.path.join("../models", "kds_v1")
+INPUT_FILE = os.path.join("../app/data", "output", "processed_skill_builder.csv")  # Yol düzeltildi
+MODEL_OUTPUT_DIR = os.path.join("../app/models", "kds_v1")
 
 # P(Correct) eşikleri (Karar Politikası)
 DIFFICULTY_POLICY = {
