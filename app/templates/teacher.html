@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eğitmen Merkezi - Karar Destek Sistemi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Fontu -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Özel Tailwind Konfigürasyonu */
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary-indigo': '#4f46e5',
+                        'dark-gray': '#1f2937',
+                    }
+                }
+            }
+        }
+
+        /* Genel Stil Düzenlemeleri */
+        body {
+            line-height: 1.5;
+            background-color: #f3f4f6; /* Açık Gri Arka Plan */
+        }
+
+        /* Ana Düzen (Mobile First Responsive Grid) */
+        .dashboard-layout {
+            display: flex;
+            flex-direction: column; /* Mobil için dikey yığınlama */
+            min-height: 100vh;
+        }
+
+        /* Sabit Menü Stili */
+        .sidebar {
+            background-color: #1f2937; /* Koyu Gri/Siyah Menü Rengi */
+            color: white;
+            padding: 1.5rem 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Masaüstü (md ve üzeri) için yatay düzen */
+        @media (min-width: 768px) {
+            .dashboard-layout {
+                display: grid;
+                grid-template-columns: 250px 1fr; /* 250px sabit menü ve kalan alan içerik */
+                flex-direction: row;
+            }
+            .sidebar {
+                height: 100%;
+                position: sticky;
+                top: 0;
+            }
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            font-weight: 500;
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: #374151;
+        }
+
+        /* İçerik Alanı */
+        .main-content {
+            padding: 1.5rem;
+        }
+
+        /* Kart Stilleri */
+        .info-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Öneri Kutusu Stilleri */
+        .recommendation-card {
+            border-left: 5px solid;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+        .recommendation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Tür bazlı renkler */
+        .recommendation-card[data-type="Konu Odaklı"] {
+            border-left-color: #ef4444; /* Kırmızı */
+            background-color: #fef2f2;
+        }
+        .recommendation-card[data-type="Bireysel Öğrenci"] {
+            border-left-color: #3b82f6; /* Mavi */
+            background-color: #eff6ff;
+        }
+        .recommendation-card[data-type="Grup Çalışması"] {
+            border-left-color: #10b981; /* Yeşil */
+            background-color: #ecfdf5;
+        }
+        .recommendation-text {
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1.4;
+            color: #4b5563; /* gray-600 */
+        }
+        .action-button {
+            padding: 0.3rem 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.15s, transform 0.1s;
+        }
+        .action-button:active {
+            transform: scale(0.98);
+        }
+        .list-item {
+            padding: 0.75rem 0;
+        }
+
+    </style>
+</head>
+<body class="dashboard-layout">
+
+    <!-- 1. Kenar Çubuğu (Sidebar) -->
+    <div class="sidebar">
+        <!-- Logo/Başlık -->
+        <h1 class="text-2xl font-extrabold text-indigo-400 mb-8">Eğitmen SD</h1>
+
+        <!-- Kullanıcı Bilgisi -->
+        <div class="mb-8 p-3 bg-gray-700 rounded-lg">
+            <p class="text-sm text-gray-200">Hoş Geldiniz,</p>
+            <p id="user-name" class="text-lg font-semibold text-white">Ayşe Yılmaz</p>
+            <p id="class-name" class="text-xs text-indigo-300 mt-1">9/A Matematik Sınıfı</p>
+        </div>
+
+        <!-- Navigasyon -->
+        <nav class="space-y-2">
+            <a href="#" class="sidebar-link active space-x-3">
+                <!-- Dashboard Icon (Heroicons) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m0 0a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6m7 6h2a2 2 0 002-2v-6a2 2 0 00-2-2h-2m0 6h-2a2 2 0 01-2-2v-4a2 2 0 012-2h2m-6 4h4" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-link space-x-3 text-gray-400 hover:text-white">
+                <!-- Students Icon (Heroicons) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20v-2c0-.656-.126-1.283-.356-1.857M9 20h5v-2a3 3 0 00-5.356-1.857M9 20v-2c0-.656-.126-1.283-.356-1.857m-4.5 1.5a3 3 0 01-.6-2.128c0-1.572.63-3.078 1.742-4.142M14.5 19.5a3 3 0 01-.6-2.128c0-1.572.63-3.078 1.742-4.142m-5 0h-2M9 10a2 2 0 012-2h2a2 2 0 012 2v1h-6v-1z" />
+                </svg>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="#" class="sidebar-link space-x-3 text-gray-400 hover:text-white">
+                <!-- Logout Icon (Heroicons) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3v-4a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Çıkış Yap</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- 2. Ana İçerik Alanı -->
+    <div class="main-content">
+        <header class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Karar Destek Sistemi Panosu</h2>
+            <p class="text-gray-500">Sınıfınızın anlık durumunu ve kişiselleştirilmiş önerileri görüntüleyin.</p>
+        </header>
+
+        <!-- Üst İstatistikler Kartı -->
+        <div class="info-card">
+            <h3 class="text-xl card-title text-primary-indigo">🏆 Sınıf Genel Bakış</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <!-- Genel Doğruluk Oranı -->
+                <div class="p-4 bg-indigo-50 rounded-xl shadow-inner">
+                    <p id="class-accuracy" class="text-3xl font-extrabold text-primary-indigo">--</p>
+                    <p class="text-sm text-gray-600 font-semibold">Genel Doğruluk Oranı</p>
+                </div>
+                <!-- Toplam Öğrenci -->
+                <div class="p-4 bg-indigo-50 rounded-xl shadow-inner">
+                    <p class="text-3xl font-extrabold text-primary-indigo">45</p>
+                    <p class="text-sm text-gray-600 font-semibold">Toplam Öğrenci Sayısı</p>
+                </div>
+                <!-- Zorlanan Konular -->
+                <div class="p-4 bg-indigo-50 rounded-xl shadow-inner">
+                    <p id="struggling-topic-count" class="text-3xl font-extrabold text-primary-indigo">--</p>
+                    <p class="text-sm text-gray-600 font-semibold">Acil Destek Gereken Konu</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ana Dashboard Bölümü (Öneriler ve Detaylar) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Öneriler (Sol/Orta Kısım) -->
+            <div class="lg:col-span-2">
+                <div class="info-card">
+                    <h3 class="text-xl card-title text-red-600">💡 Karar Destek Önerileri (Makine Öğrenimi)</h3>
+
+                    <div id="recommendations-list" class="space-y-4">
+                        <!-- Öneriler Buraya JS ile eklenecek -->
+                        <div class="text-gray-500 text-center py-8">Veriler yükleniyor...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detay Kartları (Sağ Kısım) -->
+            <div class="lg:col-span-1 space-y-6">
+
+                <!-- En Çok Zorlanılan Konular -->
+                <div class="info-card">
+                    <h3 class="text-xl card-title text-gray-700">📚 Kritik Konular</h3>
+                    <div id="struggling-topics-list" class="space-y-3">
+                        <!-- Konular Buraya JS ile eklenecek -->
+                        <div class="text-gray-500 text-center py-4 text-sm">Veriler yükleniyor...</div>
+                    </div>
+                </div>
+
+                <!-- Riskli Öğrenciler -->
+                <div class="info-card">
+                    <h3 class="text-xl card-title text-gray-700">👤 Riskli Öğrenciler</h3>
+                    <div id="struggling-students-list" class="divide-y divide-gray-200 border-t border-b border-gray-200">
+                        <!-- Öğrenciler Buraya JS ile eklenecek -->
+                        <div class="text-gray-500 text-center py-4 text-sm">Veriler yükleniyor...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alt kısım (Ek İstatistikler) -->
+        <div class="info-card mt-6">
+            <h3 class="text-xl card-title text-gray-700">📊 Ek Sınıf İstatistikleri</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-xl font-bold text-gray-900">45</p>
+                    <p class="text-sm text-gray-500">Aktif Öğrenci</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-xl font-bold text-gray-900">8.2 / 10</p>
+                    <p class="text-sm text-gray-500">Ders Bağımlılık Skoru</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-xl font-bold text-gray-900">3.8</p>
+                    <p class="text-sm text-gray-500">Ort. İpucu Sayısı</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-xl font-bold text-gray-900">12:30</p>
+                    <p class="text-sm text-gray-500">Ort. Yanıtlama Süresi (sn)</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript ile Veri Simülasyonu ve Render İşlemi -->
+    <script>
+        // --- 1. SİMÜLE EDİLMİŞ VERİLER (Orijinal app.py'den) ---
+        // Bu yapı, Flask uygulamasından render edilmek yerine doğrudan simüle edilir.
+        const TEACHER_DATA = {
+            "class_name": "9/A Matematik Sınıfı",
+            "teacher_name": "Ayşe Yılmaz",
+            "class_overview_accuracy": 70.8,
+            "struggling_topics": [
+                {"name": "Rotations", "struggle_level": 95, "success_rate": 5.0},
+                {"name": "Surface Area Cylinder", "struggle_level": 88, "success_rate": 12.0},
+                {"name": "Volume Cylinder", "struggle_level": 76, "success_rate": 24.0}
+            ],
+            "top_struggling_students": [
+                {"id": 92007, "name": "Eren Yılmaz", "recent_score": 55, "hint_avg": 4.1},
+                {"id": 88904, "name": "Defne Demir", "recent_score": 62, "hint_avg": 3.5},
+                {"id": 78647, "name": "Selin Acar", "recent_score": 70, "hint_avg": 2.8}
+            ]
+        };
+
+        // --- 2. KARAR DESTEK ÖNERİLERİNİ ÜRETME FONKSİYONU ---
+        function generateRecommendations(data) {
+            const topStruggleTopic = data.struggling_topics[0];
+            const topStruggleStudent = data.top_struggling_students[0];
+
+            return [
+                {
+                    "type": "Konu Odaklı",
+                    "text": `Sınıfın en çok zorlandığı konu olan **${topStruggleTopic.name}** için ek alıştırmalar veya video kaynakları atayın. (Başarı: ${topStruggleTopic.success_rate}%)`,
+                    "action": "Ders Materyali Ekle"
+                },
+                {
+                    "type": "Bireysel Öğrenci",
+                    "text": `**${topStruggleStudent.name}** (${topStruggleStudent.recent_score}%) son denemelerinde düşük performans gösteriyor. Bire bir görüşme planlayın.`,
+                    "action": "Görüşme Planla"
+                },
+                {
+                    "type": "Grup Çalışması",
+                    "text": "Ortalama zorluk seviyesindeki öğrencileri birbirleriyle eşleştirerek akran desteği grubu oluşturun. Bu, Rotations ve Volume Cylinder konularında faydalı olabilir.",
+                    "action": "Grup Oluştur"
+                }
+            ];
+        }
+
+        // --- 3. HTML RENDER FONKSİYONLARI ---
+
+        // Genel bilgileri günceller
+        function renderGeneralInfo(data) {
+            document.getElementById('user-name').textContent = data.teacher_name;
+            document.getElementById('class-name').textContent = data.class_name;
+            document.getElementById('class-accuracy').textContent = `${data.class_overview_accuracy}%`;
+            document.getElementById('struggling-topic-count').textContent = data.struggling_topics.length;
+        }
+
+        // Öneriler listesini render eder
+        function renderRecommendations(recommendations) {
+            const listElement = document.getElementById('recommendations-list');
+            listElement.innerHTML = ''; // Temizle
+
+            recommendations.forEach(rec => {
+                const html = `
+                    <div class="recommendation-card" data-type="${rec.type}">
+                        <div class="flex justify-between items-start">
+                            <p class="text-xs font-semibold uppercase opacity-80 mb-1" style="color: inherit;">${rec.type} Önerisi</p>
+                            <span class="text-xs font-medium text-gray-500">${new Date().toLocaleDateString('tr-TR')}</span>
+                        </div>
+                        <p class="recommendation-text mt-1">${rec.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
+                        <div class="mt-3 text-right">
+                            <button class="action-button text-white bg-indigo-600 hover:bg-indigo-700 text-xs shadow-md">
+                                ${rec.action}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listElement.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // Zorlanan konular listesini render eder
+        function renderStrugglingTopics(topics) {
+            const listElement = document.getElementById('struggling-topics-list');
+            listElement.innerHTML = '';
+
+            topics.forEach(topic => {
+                const html = `
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl hover:bg-red-100 transition duration-150 cursor-pointer">
+                        <span class="font-medium text-sm text-gray-800">${topic.name}</span>
+                        <div class="text-right flex items-center">
+                            <span class="text-xs font-semibold text-red-600">${topic.struggle_level}% Zorluk</span>
+                            <button class="ml-3 text-xs text-blue-600 bg-blue-100 action-button hover:bg-blue-200">Detay</button>
+                        </div>
+                    </div>
+                `;
+                listElement.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // Riskli öğrenciler listesini render eder
+        function renderStrugglingStudents(students) {
+            const listElement = document.getElementById('struggling-students-list');
+            listElement.innerHTML = '';
+
+            students.forEach(student => {
+                // pravatar.cc, rastgele kullanıcı görseli sağlar - id'ye göre benzersiz görsel
+                const avatarUrl = `https://i.pravatar.cc/50?u=${student.id}`;
+                const html = `
+                    <div class="list-item flex items-center justify-between hover:bg-gray-50 transition duration-150 p-2 -mx-2 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <img src="${avatarUrl}" alt="${student.name}" class="w-10 h-10 rounded-full border-2 border-red-300 shadow-sm" onerror="this.onerror=null;this.src='https://placehold.co/50x50/FCA5A5/DC2626?text=${student.name.charAt(0)}';" />
+                            <div>
+                                <span class="font-semibold text-gray-800 text-sm">${student.name}</span>
+                                <span class="block text-xs text-gray-500">Son Skor: ${student.recent_score}%</span>
+                            </div>
+                        </div>
+                        <button class="text-xs text-red-600 border border-red-600 action-button hover:bg-red-50 shadow-sm">Öneri Atla</button>
+                    </div>
+                `;
+                listElement.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // --- 4. BAŞLATMA ---
+        function initializeDashboard() {
+            // Veri yükleme simülasyonu
+            const data = TEACHER_DATA;
+            const recommendations = generateRecommendations(data);
+
+            renderGeneralInfo(data);
+            renderRecommendations(recommendations);
+            renderStrugglingTopics(data.struggling_topics);
+            renderStrugglingStudents(data.top_struggling_students);
+        }
+
+        // Sayfa yüklendiğinde panoyu başlat
+        window.onload = initializeDashboard;
+    </script>
+</body>
+</html>

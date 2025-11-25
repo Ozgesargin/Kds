@@ -1,2 +1,27 @@
+# Core Veri İşleme ve Sayısal Hesaplama
 pandas
 numpy
+
+# Makine Öğrenimi Modeli ve Ön İşleme
+scikit-learn
+statsmodels       # (Opsiyonel: Daha derin istatistiksel analizler veya GLM'ler için)
+
+# API Geliştirme (Sprint 3: Modelin Servis Edilmesi)
+Flask             # REST API sunucusu için temel paket
+gunicorn          # (Opsiyonel: Dağıtıma uygun sunucu için)
+
+# Arayüz Geliştirme (Sprint 4: Öğretmen Paneli)
+streamlit          # Hızlı Web Arayüzü (Öğretmen Paneli) için
+requests           # Streamlit'ten Flask API'sine HTTP istekleri göndermek için
+
+# Dosya Yönetimi ve Serileştirme (Modeli Kaydetme/Yükleme)
+# Python'daki objeleri (model, scaler) diske kaydetmek ve yüklemek için
+# Python'ın standart kütüphanesidir, genellikle kurulum gerekmez, ama güvenilir olması için listelenir.
+# pickle (Dahili)
+
+# Veritabanı Bağlantısı (Opsiyonel: Eğer veri lokal CSV'de değilse)
+# psycopg2-binary           # Eğer PostgreSQL kullanılıyorsa
+# pymysql                   # Eğer MySQL kullanılıyorsa
+
+# Diğer Yardımcılar
+# jupyterlab>=4.0.0        # (Opsiyonel: Keşifçi Veri Analizi ve Geliştirme Ortamı)
