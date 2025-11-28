@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="41c32f06-5b11-430b-8518-9a455ee43517" name="Changes" comment="sql işlemleri" />
+    <list default="true" id="7e3df214-3e09-41f6-994a-0c5437243cd6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/database/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/database/data_service.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/model_inference.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/ui/templates/evaluation.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/ui/templates/students.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/data/skill_builder_data.csv" beforeDir="false" afterPath="$PROJECT_DIR$/app/data/skill_builder_data.csv" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,18 +21,12 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="HTML File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="PUSH_TAGS">
-      <GitPushTagMode>
-        <option name="argument" value="--tags" />
-        <option name="title" value="All" />
-      </GitPushTagMode>
-    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -35,17 +37,15 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Ozgesargin/KDS.git&quot;,
+    &quot;url&quot;: &quot;https://github.com/Ozgesargin/Kds.git&quot;,
     &quot;accountId&quot;: &quot;b38c7342-fda7-4acd-bcdc-6dcde69ae867&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
 }</component>
-  <component name="ProjectId" id="34TESrbBg0TEBCoT13UNg7zaDEU" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="1" id="Add" />
-  </component>
+  <component name="ProjectId" id="360i3tL3h7OdqPaY3ZBBjUdNDlm" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -53,31 +53,16 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "DefaultHtmlFileTemplate": "HTML File",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.api_service.executor": "Run",
     "Python.app.executor": "Run",
-    "Python.dataPreprocess.executor": "Run",
-    "Python.dataProcess.executor": "Run",
     "Python.data_preprocess.executor": "Run",
-    "Python.data_service.executor": "Run",
-    "Python.database.executor": "Run",
     "Python.main.executor": "Run",
     "Python.model_training.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "settings.editor.selected.configurable": "promo.database"
+    "git-widget-placeholder": "main"
   }
 }]]></component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\Desktop\Kds\app\ui" />
-      <recent name="D:\Desktop\Kds\app" />
-      <recent name="D:\Desktop\Kds\app\database" />
-      <recent name="D:\Desktop\Kds" />
-    </key>
-  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -87,81 +72,12 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="41c32f06-5b11-430b-8518-9a455ee43517" name="Changes" comment="" />
-      <created>1761229168990</created>
+      <changelist id="7e3df214-3e09-41f6-994a-0c5437243cd6" name="Changes" comment="" />
+      <created>1764149695420</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1761229168990</updated>
+      <updated>1764149695420</updated>
     </task>
-    <task id="LOCAL-00001" summary="veri ön işleme yapıldı">
-      <option name="closed" value="true" />
-      <created>1761231049321</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1761231049321</updated>
-    </task>
-    <task id="LOCAL-00002" summary="makine öğrenmesi, örnek html kodlar ve örnek db kodları yazıldı. Db ve arayüz kodları dinamik çalışabilir hale getirilmeli.">
-      <option name="closed" value="true" />
-      <created>1764073635511</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1764073635511</updated>
-    </task>
-    <task id="LOCAL-00003" summary="dosya yapısı/ mimari düzeltildi">
-      <option name="closed" value="true" />
-      <created>1764074189208</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1764074189208</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Klasör değişti">
-      <option name="closed" value="true" />
-      <created>1764076028672</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1764076028672</updated>
-    </task>
-    <task id="LOCAL-00005" summary="sql işlemleri">
-      <option name="closed" value="true" />
-      <created>1764148176640</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1764148176640</updated>
-    </task>
-    <task id="LOCAL-00006" summary="sql işlemleri">
-      <option name="closed" value="true" />
-      <created>1764148260525</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1764148260525</updated>
-    </task>
-    <option name="localTasksCounter" value="7" />
     <servers />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="veri ön işleme yapıldı." />
-    <MESSAGE value="veri ön işleme yapıldı" />
-    <MESSAGE value="makine öğrenmesi, örnek html kodlar ve örnek db kodları yazıldı. Db ve arayüz kodları dinamik çalışabilir hale getirilmeli." />
-    <MESSAGE value="dosya yapısı/ mimari düzeltildi" />
-    <MESSAGE value="Klasör değişti" />
-    <MESSAGE value="sql işlemleri" />
-    <option name="LAST_COMMIT_MESSAGE" value="sql işlemleri" />
   </component>
 </project>
