@@ -3,11 +3,20 @@
 from flask import Flask, render_template, request, redirect, url_for, session, g
 from functools import wraps
 import os
-import hashlib
+import json  # Ödev sorularını JSON olarak almak için
 
 from database.data_service import DataService
-from database.db import get_db_connection
+from database.db import (
+    get_db_connection,
+    insert_evaluation_results,      # İstersen kullanılmayabilir ama dursun
+    save_homework_questions_for_student,
+    fetch_homework_for_student,
+)
 from model_inference import predict_difficulty_for_file
+from question_service import QuestionService  # DeepMind Math tabanlı soru servisi
+
+# DeepMind Math soru servisini tek örnek olarak oluşturuyoruz
+q_service = QuestionService()
 
 # ---------------------------------------------------------
 # TEMPLATE KLASÖRÜ
@@ -19,7 +28,6 @@ app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get(
     "SECRET_KEY", "cok_gizli_ve_uzun_bir_flask_session_anahtari"
 )
-
 
 
 # ---------------------------------------------------------
@@ -55,9 +63,9 @@ def fetch_teacher_by_credentials(username, password):
         ogretmen_id = row.ogretmen_id
         okul_id = row.okul_id
         kullanici_adi = row.KullaniciAdi
-        sifre_db = row.Sifre  # NVARCHAR sütun
+        sifre_db = row.Sifre
 
-        # Düz karşılaştırma
+        # Basit şifre kontrolü (hash yok, proje için sade hali)
         if sifre_db is None or sifre_db != password:
             return None
 
@@ -77,6 +85,8 @@ def fetch_teacher_by_credentials(username, password):
     finally:
         if conn is not None:
             conn.close()
+
+
 # ---------------------------------------------------------
 # Decorator: Giriş Zorunlu
 # ---------------------------------------------------------
@@ -103,12 +113,9 @@ def login_required(f):
 
 
 # ---------------------------------------------------------
-# Karar Destek Önerileri (UI'da gösterilen 3 kutu)
+# Karar Destek Önerileri (dashboard için)
 # ---------------------------------------------------------
 def generate_recommendations(data):
-    """
-    Dashboard verisine göre 3 adet öneri objesi üretir.
-    """
     if (
         not data
         or not data.get("struggling_topics")
@@ -164,7 +171,7 @@ def generate_recommendations(data):
 
 
 # ---------------------------------------------------------
-# Rotalar
+# Rotalar (Auth + Dashboard)
 # ---------------------------------------------------------
 @app.route("/")
 def index():
@@ -198,7 +205,7 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    error = "Kayıt işlemi veritabanı simülasyonunda devre dışıdır."
+    error = "Kayıt işlemi bu demo sürümde devre dışıdır."
     return render_template("login.html", error=error)
 
 
@@ -208,13 +215,13 @@ def logout():
     return redirect(url_for("index"))
 
 
-@app.route('/dashboard')
+@app.route("/dashboard")
 @login_required
 def teacher_dashboard():
-    teacher_id = session.get('teacher_id')   # login sırasında set etmiştik
-    okul_id = session.get('okul_id')
+    teacher_id = session.get("teacher_id")
+    school_id = session.get("school_id")
 
-    kds_service = DataService(teacher_id=teacher_id, okul_id=okul_id)
+    kds_service = DataService(teacher_id=teacher_id, okul_id=school_id)
     dashboard_data = kds_service.predict_and_aggregate_data()
     recommendations = generate_recommendations(dashboard_data)
 
@@ -225,18 +232,19 @@ def teacher_dashboard():
     }
     return render_template("teacher.html", **context)
 
-@app.route('/students')
+
+# ---------------------------------------------------------
+# Öğrenciler listesi
+# ---------------------------------------------------------
+@app.route("/students")
 @login_required
 def students():
-    """Öğrenciler listesi sayfası."""
-    teacher_id = session.get('teacher_id')
-    okul_id = session.get('okul_id')
+    teacher_id = session.get("teacher_id")
+    school_id = session.get("school_id")
 
     try:
-        kds_service = DataService(teacher_id=teacher_id, okul_id=okul_id)
-        # Dashboard’ta kullandığın özet veri:
+        kds_service = DataService(teacher_id=teacher_id, okul_id=school_id)
         dashboard_data = kds_service.predict_and_aggregate_data()
-        # Öğrenciler tablosu:
         students_list = kds_service.get_student_performance()
     except Exception as e:
         print(f"HATA: Öğrenci listesi alınırken hata oluştu: {e}")
@@ -249,50 +257,74 @@ def students():
 
     context = {
         "user": g.user,
-        "data": dashboard_data,   # 🔴 students.html içinde kullanacağımız değişken
-        "students": students_list
+        "data": dashboard_data,
+        "students": students_list,
     }
     return render_template("students.html", **context)
 
 
+# ---------------------------------------------------------
+# Evaluation (Dosya yükleyip modelle değerlendirme)
+# ---------------------------------------------------------
 @app.route("/evaluation", methods=["GET", "POST"])
 @login_required
 def evaluation():
-    """
-    Başarı değerlendirme sayfası.
-    Öğretmen CSV/Excel dosyası yükler, model tahmin eder,
-    biz de evaluation.html’de gösteririz.
-    """
+    from database.db import save_evaluation_results_to_db  # döngü import olmaması için
+
     message = None
     headers = []
     rows = []
 
     if request.method == "POST":
+        action = request.form.get("action", "preview")  # "preview" veya "save"
         file = request.files.get("file")
 
         if not file or file.filename == "":
             message = "Lütfen bir CSV veya Excel dosyası seçin."
         else:
             try:
-                # Model ile tahmin yap
+                # Her iki durumda da önce modeli çalıştırıp önizlemeyi üretelim
                 result_df = predict_difficulty_for_file(file)
 
-                # Ekranda ilk 100 satırı gösterelim
-                preview_df = result_df.head(100)
+                # Öğretmene gösterilecek sade tablo
+                display_cols = [
+                    "user_id",
+                    "problem_id",
+                    "skill_name",
+                    "correct",
+                    "p_correct",
+                    "difficulty_level",
+                ]
+                display_cols = [c for c in display_cols if c in result_df.columns]
+
+                preview_df = result_df[display_cols].copy()
+
+                if "p_correct" in preview_df.columns:
+                    preview_df["p_correct"] = (preview_df["p_correct"] * 100).round(1)
 
                 headers = list(preview_df.columns)
                 rows = preview_df.to_dict(orient="records")
 
-                message = (
-                    f"{len(result_df)} satır için değerlendirme yapıldı. "
-                    f"İlk {len(preview_df)} satır gösteriliyor."
-                )
+                if action == "save":
+                    # Kullanıcı önce zaten önizleyip sonra bu butona basacak
+                    save_evaluation_results_to_db(result_df)
+                    message = (
+                        f"{len(result_df)} satırlık değerlendirme sonucu sisteme kaydedildi. "
+                        "Dashboard ve Öğrenciler ekranı bu verileri de kullanacak."
+                    )
+                else:
+                    message = (
+                        f"{len(result_df)} satır için değerlendirme yapıldı. "
+                        f"İlk {len(preview_df)} satır gösteriliyor."
+                    )
 
             except Exception as e:
                 print(f"HATA: Dosya değerlendirme başarısız oldu: {e}")
                 message = (
-                    "Dosya okunurken veya model tahmini yapılırken bir hata oluştu. "
-                    "Lütfen dosya kolonlarının eğitimde kullandığın formatla uyumlu olduğundan emin ol."
+                    "Dosya okunurken, veri ön işleme yapılırken veya model tahmini sırasında bir hata oluştu. "
+                    "Çoğunlukla dosyanın encoding'i (UTF-8 vs.) ya da zorunlu kolonlardan birinin eksik olması "
+                    "bu hataya sebep olur. En az şu kolonlar bulunmalı: "
+                    "user_id, problem_id, skill_id, skill_name, correct, ms_first_response."
                 )
 
     return render_template(
@@ -304,6 +336,92 @@ def evaluation():
     )
 
 
+# ---------------------------------------------------------
+# YENİ: Öğrenci Profil Sayfası + Soru Önerileri + Ödevler
+# ---------------------------------------------------------
+@app.route("/students/<int:student_id>")
+@login_required
+def student_profile(student_id: int):
+    teacher_id = session.get("teacher_id")
+    school_id = session.get("school_id")
+
+    kds_service = DataService(teacher_id=teacher_id, okul_id=school_id)
+    profile = kds_service.get_student_profile(student_id)
+
+    # En çok zorlanılan / çalışılan skil
+    primary_skill = None
+    has_any_activity = False
+
+    topics = profile.get("topics") or []
+    if topics:
+        topics_sorted = sorted(topics, key=lambda t: t.get("accuracy", 100.0))
+        primary_skill = topics_sorted[0].get("name")
+        has_any_activity = True
+    else:
+        has_any_activity = False
+
+    # DeepMind Math'ten soru öner
+    recommendations = q_service.recommend_for_student_accuracy(
+        overall_accuracy=profile.get("overall_accuracy", 0.0),
+        n=8,
+        primary_skill_name=primary_skill,
+        has_any_activity=has_any_activity,
+    )
+
+    # Bu öğrenciye daha önce verilmiş ödevler
+    assigned_homework = fetch_homework_for_student(student_id)
+
+    context = {
+        "user": g.user,
+        "profile": profile,
+        "recommendations": recommendations,
+        "assigned_homework": assigned_homework,
+    }
+    return render_template("student_profile.html", **context)
+
+
+# ---------------------------------------------------------
+# YENİ: Bu öğrencinin önerilen sorularını ödev olarak kaydet
+# ---------------------------------------------------------
+@app.route("/students/<int:student_id>/assign_homework", methods=["POST"])
+@login_required
+def assign_homework(student_id: int):
+    teacher_id = session.get("teacher_id")
+
+    questions_json = request.form.get("questions_json", "[]")
+    try:
+        all_questions = json.loads(questions_json)
+    except Exception:
+        all_questions = []
+
+    # Seçili index değerlerini al
+    selected_indices = request.form.getlist("selected_idx")
+    try:
+        selected_indices = [int(i) for i in selected_indices]
+    except Exception:
+        selected_indices = []
+
+    if selected_indices:
+        questions = [
+            q for idx, q in enumerate(all_questions) if idx in selected_indices
+        ]
+    else:
+        questions = []
+
+    if not questions:
+        print("INFO: assign_homework - Seçili soru yok, ödev kaydedilmedi.")
+        return redirect(url_for("student_profile", student_id=student_id))
+
+    try:
+        save_homework_questions_for_student(
+            teacher_id=teacher_id,
+            student_id=student_id,
+            questions=questions,
+        )
+    except Exception as e:
+        print(f"HATA: Ödev kaydedilirken hata oluştu: {e}")
+
+    return redirect(url_for("student_profile", student_id=student_id))
 
 # ---------------------------------------------------------
 # Lokal Çalıştırma

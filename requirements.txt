@@ -25,3 +25,5 @@ requests           # Streamlit'ten Flask API'sine HTTP istekleri göndermek içi
 
 # Diğer Yardımcılar
 # jupyterlab>=4.0.0        # (Opsiyonel: Keşifçi Veri Analizi ve Geliştirme Ortamı)
+datasets
+kagglehub

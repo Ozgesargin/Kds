@@ -1,128 +1,161 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Başarı Değerlendirme - Eğitmen Merkezi</title>
+    <meta charset="UTF-8" />
+    <title>Başarı Değerlendirme - Eğitmen Destek Sistemi</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-slate-100 min-h-screen">
+<div class="flex min-h-screen">
 
-    <div class="max-w-6xl mx-auto py-8 px-4 space-y-6">
-        <!-- Üst başlık ve menü -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900">
-                    Başarı Değerlendirme (ML)
-                </h1>
-                <p class="text-sm text-gray-600">
-                    {{ user.name }} – öğrencileriniz için Kolay / Orta / Zor soru ataması yapın.
-                </p>
-            </div>
-            <div class="flex gap-2">
-                <a href="{{ url_for('teacher_dashboard') }}"
-                   class="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700">
-                    Dashboard
-                </a>
-                <a href="{{ url_for('students') }}"
-                   class="px-4 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-600 border border-indigo-600 hover:bg-indigo-50">
-                    Öğrenciler
-                </a>
-                <a href="{{ url_for('logout') }}"
-                   class="px-4 py-2 rounded-lg text-sm font-semibold bg-gray-800 text-white hover:bg-gray-900">
-                    Çıkış Yap
-                </a>
-            </div>
+    <!-- Drawer -->
+    <aside class="hidden md:flex md:flex-col w-64 bg-slate-900 text-slate-100">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800">
+            <span class="text-lg font-semibold tracking-tight">
+                Eğitmen Paneli
+            </span>
         </div>
+        <nav class="flex-1 px-4 py-4 space-y-1 text-sm">
+            <a href="{{ url_for('teacher_dashboard') }}"
+               class="flex items-center px-3 py-2 rounded-lg hover:bg-slate-800">
+                Gösterge Paneli
+            </a>
+            <a href="{{ url_for('students') }}"
+               class="flex items-center px-3 py-2 rounded-lg hover:bg-slate-800">
+                Öğrenciler
+            </a>
+            <span class="flex items-center px-3 py-2 rounded-lg bg-slate-800 text-slate-50">
+                Başarı Değerlendirme
+            </span>
+        </nav>
+        <div class="px-4 py-4 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span class="text-slate-300 truncate">
+                {{ user.name }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="text-slate-400 hover:text-slate-100">
+                Çıkış
+            </a>
+        </div>
+    </aside>
 
-        <!-- Yükleme Formu -->
-        <div class="bg-white shadow-xl rounded-xl p-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-2">
-                Veri Yükle
-            </h2>
-            <p class="text-sm text-gray-500 mb-4">
-                Eğitimde kullandığınız <code>processed_skill_builder.csv</code> ile aynı kolonlara sahip
-                bir <strong>CSV</strong> veya <strong>Excel</strong> dosyası yükleyin.
-                Model her satır için <strong>p(correct)</strong> ve <strong>Kolay / Orta / Zor</strong> tahmini üretecektir.
-            </p>
+    <!-- Mobil üst bar -->
+    <header class="md:hidden fixed top-0 inset-x-0 h-14 bg-slate-900 text-slate-50 flex items-center justify-between px-4 z-20">
+        <span class="text-sm font-semibold">Başarı Değerlendirme</span>
+        <a href="{{ url_for('logout') }}" class="text-xs text-slate-200">
+            Çıkış
+        </a>
+    </header>
 
-            {% if message %}
-                <div class="mb-4 px-4 py-3 rounded-lg text-sm
-                            {% if rows %}bg-yellow-50 text-yellow-800 border border-yellow-200
-                            {% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
-                    {{ message }}
-                </div>
-            {% endif %}
-
-            <form method="POST" enctype="multipart/form-data" class="space-y-4">
+    <!-- İçerik -->
+    <main class="flex-1 md:ml-0 mt-14 md:mt-0">
+        <div class="max-w-6xl mx-auto px-4 py-6 md:py-8">
+            <div class="flex items-center justify-between mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Dosya Seç (CSV / Excel)</label>
-                    <input type="file" name="file" accept=".csv,.xlsx,.xls"
-                           class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <h1 class="text-2xl font-bold text-slate-900">
+                        Başarı Değerlendirme
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Öğrenci–soru log dosyanızı yükleyin, sistem tahminleri ve zorluk seviyelerini önizleyin.
+                    </p>
                 </div>
-                <button type="submit"
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Dosyayı Yükle ve Değerlendir
-                </button>
-            </form>
-        </div>
+            </div>
 
-        <!-- Sonuç Tablosu -->
-        {% if rows %}
-            <div class="bg-white shadow-xl rounded-xl p-6">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">
-                    Tahmin Sonuçları (ilk 100 satır)
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                {% for h in headers %}
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 whitespace-nowrap">
-                                        {{ h }}
-                                    </th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-100">
-                            {% for row in rows %}
-                                <tr class="hover:bg-gray-50">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Yükleme kartı -->
+                <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 lg:col-span-1">
+                    <h2 class="text-sm font-semibold text-slate-900 mb-3">
+                        Dosya Yükleme
+                    </h2>
+                    <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
+                        En az şu sütunları içeren bir CSV / Excel dosyası yükleyin:
+                        <span class="font-mono">user_id, problem_id, skill_id, skill_name, correct, ms_first_response</span>
+                    </p>
+
+                    {% if message %}
+                        <div class="mb-3 text-[11px] text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1.5">
+                                Dosya Seç
+                            </label>
+                            <input
+                                type="file"
+                                name="file"
+                                accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                class="block w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-slate-50 hover:file:bg-slate-800"
+                            />
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                type="submit"
+                                name="action"
+                                value="preview"
+                                class="inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-50 hover:bg-slate-800"
+                            >
+                                Önizle
+                            </button>
+                            <button
+                                type="submit"
+                                name="action"
+                                value="save"
+                                class="inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-700 bg-white hover:bg-slate-50"
+                            >
+                                Sonuçları Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Önizleme tablosu -->
+                <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 lg:col-span-2">
+                    <h2 class="text-sm font-semibold text-slate-900 mb-3">
+                        Tahmin Önizlemesi
+                    </h2>
+
+                    {% if rows and headers %}
+                        <div class="overflow-x-auto max-h-[420px]">
+                            <table class="min-w-full text-xs">
+                                <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
                                     {% for h in headers %}
-                                        {% if h == 'difficulty_level' %}
-                                            {% set val = row[h] %}
-                                            {% if val == 'Kolay' %}
-                                                {% set badge = 'bg-green-100 text-green-700' %}
-                                            {% elif val == 'Orta' %}
-                                                {% set badge = 'bg-yellow-100 text-yellow-700' %}
-                                            {% else %}
-                                                {% set badge = 'bg-red-100 text-red-700' %}
-                                            {% endif %}
-                                            <td class="px-3 py-2 whitespace-nowrap">
-                                                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ badge }}">
-                                                    {{ val }}
-                                                </span>
-                                            </td>
-                                        {% elif h == 'p_correct' %}
-                                            <td class="px-3 py-2 whitespace-nowrap text-right">
-                                                {{ "%.3f"|format(row[h]) }}
-                                            </td>
-                                        {% else %}
-                                            <td class="px-3 py-2 whitespace-nowrap text-gray-800">
-                                                {{ row[h] }}
-                                            </td>
-                                        {% endif %}
+                                        <th class="py-2 px-2 text-left">
+                                            {{ h }}
+                                        </th>
                                     {% endfor %}
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                {% for row in rows %}
+                                    <tr class="hover:bg-slate-50">
+                                        {% for h in headers %}
+                                            <td class="py-1.5 px-2 text-slate-800">
+                                                {{ row[h] }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-xs text-slate-400">
+                            Henüz önizleme yapılmadı. Dosya yükleyip “Önizle” butonuna tıklayın.
+                        </p>
+                    {% endif %}
+                </section>
             </div>
-        {% endif %}
-    </div>
-
+        </div>
+    </main>
+</div>
 </body>
 </html>

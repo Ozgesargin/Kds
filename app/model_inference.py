@@ -21,19 +21,28 @@ NUMERICAL_FEATURES = [
 CATEGORICAL_FEATURES = []  # Şu an yok, ama altyapı hazır
 
 # Model dosyalarının yolu (app klasörü içinden)
-#   app/
-#     model_inference.py  (bu dosya)
-#     models/
-#       kds_v1/
-#         logreg_model.pkl
-#         scaler.pkl
-#         feature_names.json
-#         difficulty_policy.json
 MODEL_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "models",
     "kds_v1"
 )
+
+# Ham log dosyası için ZORUNLU kolonlar
+REQUIRED_COLS = [
+    "user_id",
+    "problem_id",
+    "skill_id",
+    "skill_name",
+    "correct",
+    "ms_first_response",
+]
+
+# Opsiyonel ama varsa kullanılan kolonlar
+OPTIONAL_COLS = [
+    "attempt_count",
+    "hint_count",
+    "hint_total",
+]
 
 
 def load_model_components():
@@ -55,6 +64,7 @@ def load_model_components():
     scaler = pickle.load(open(scaler_path, "rb"))
     feature_names = json.load(open(features_path, "r", encoding="utf-8"))
 
+    # Zorluk politikası (kalibrasyon scriptinden gelir)
     if os.path.exists(policy_path):
         difficulty_policy = json.load(open(policy_path, "r", encoding="utf-8"))
     else:
@@ -69,7 +79,7 @@ def load_model_components():
 def prepare_inference_matrix(df, scaler, feature_names):
     """
     Eğitimde kullanılan feature setine uygun bir X matrisi hazırlar.
-    df'nin zaten processed_skill_builder benzeri kolonlara sahip olduğunu varsayıyoruz.
+    df'nin zaten create_mastery_features ile üretilmiş kolonlara sahip olduğunu varsayıyoruz.
     """
     X = df.copy()
 
@@ -104,9 +114,62 @@ def prepare_inference_matrix(df, scaler, feature_names):
     return X
 
 
+# ----------------------------------------------------------------------
+# Ham log → Ön işleme → Özellik çıkarımı
+# Eğitimde kullandığın pipeline'ın hafif versiyonunu burada tekrar kullanıyoruz.
+# ----------------------------------------------------------------------
+def preprocess_raw_log_df(df_raw: pd.DataFrame) -> pd.DataFrame:
+    """
+    Evaluation ekranından gelen ham log verisi için:
+      - Zorunlu kolonları kontrol eder
+      - Eksik opsiyonel kolonları default ile doldurur
+      - data_preprocess.clean_and_prepare + model_training.create_mastery_features
+        pipeline'ını çalıştırır.
+    """
+    # Fazla sütun sorun değil, ama şu zorunlular yoksa hata ver:
+    missing = [c for c in REQUIRED_COLS if c not in df_raw.columns]
+    if missing:
+        raise ValueError(
+            "Yüklenen dosyada eksik zorunlu sütun(lar) var: "
+            + ", ".join(missing)
+            + ".\n"
+            + "Lütfen dosyanın en az şu kolonları içerdiğinden emin olun: "
+            + ", ".join(REQUIRED_COLS)
+        )
+
+    df = df_raw.copy()
+
+    # Opsiyonel kolonlar yoksa default değer atayalım
+    if "attempt_count" not in df.columns:
+        df["attempt_count"] = 1
+    if "hint_count" not in df.columns:
+        df["hint_count"] = 0
+    if "hint_total" not in df.columns:
+        df["hint_total"] = df["hint_count"]
+
+    # Proje kök dizinini import yoluna ekle (data_preprocess & model_training'i kullanmak için)
+    import sys
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if project_root not in sys.path:
+        sys.path.append(project_root)
+
+    # Eğitimde kullandığın fonksiyonları tekrar kullan
+    from data_preprocess import clean_and_prepare  # type: ignore
+    from model_training import create_mastery_features  # type: ignore
+
+    df_clean = clean_and_prepare(df)
+    df_features = create_mastery_features(df_clean)
+
+    return df_features
+
+
+# ----------------------------------------------------------------------
+# Tahmin Fonksiyonları
+# ----------------------------------------------------------------------
 def predict_difficulty_for_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Verilen DataFrame için p(correct) ve difficulty label üretir.
+    df'nin create_mastery_features ile elde edilmiş kolonlara sahip olduğunu varsayar.
     """
     model, scaler, feature_names, policy = load_model_components()
 
@@ -134,8 +197,12 @@ def predict_difficulty_for_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def predict_difficulty_for_file(uploaded_file) -> pd.DataFrame:
     """
-    Flask'tan gelen dosya objesini (CSV veya Excel) okuyup
-    difficulty tahminleri içeren DataFrame döndürür.
+    Flask'tan gelen dosya objesini (CSV veya Excel) okuyup:
+      1) Ham veriye veri ön işleme ve özellik çıkarımı uygular
+      2) Model ile p(correct) + difficulty_level hesaplar
+      3) Sonuç DataFrame'ini döndürür.
+
+    Fazla sütunlar sorun değil; ZORUNLU sütun isimleri varsa sırası önemsizdir.
     """
     filename = uploaded_file.filename.lower()
 
@@ -144,14 +211,38 @@ def predict_difficulty_for_file(uploaded_file) -> pd.DataFrame:
 
     # Dosyayı pandas ile oku
     if filename.endswith(".xlsx") or filename.endswith(".xls"):
-        df = pd.read_excel(uploaded_file)
+        # Excel'de encoding problemi olmaz
+        df_raw = pd.read_excel(uploaded_file)
     elif filename.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
+        # CSV için farklı encoding denemeleri
+        tried_encodings = []
+        df_raw = None
+        for enc in ["utf-8", "utf-8-sig", "cp1254", "latin1"]:
+            try:
+                uploaded_file.seek(0)
+                df_raw = pd.read_csv(uploaded_file, encoding=enc)
+                break
+            except UnicodeDecodeError:
+                tried_encodings.append(enc)
+                continue
+
+        if df_raw is None:
+            raise UnicodeDecodeError(
+                "utf-8",
+                b"",
+                0,
+                1,
+                f"Dosya şu encoding denemeleriyle açılamadı: {', '.join(tried_encodings)}"
+            )
     else:
         raise ValueError("Sadece CSV veya Excel dosyaları destekleniyor.")
 
-    if df.empty:
+    if df_raw.empty:
         raise ValueError("Yüklenen dosya boş görünüyor.")
 
-    result_df = predict_difficulty_for_dataframe(df)
+    # 1) Ham log'u eğitimdeki pipeline ile uyumlu hale getir
+    df_features = preprocess_raw_log_df(df_raw)
+
+    # 2) Model ile tahmin yap
+    result_df = predict_difficulty_for_dataframe(df_features)
     return result_df

@@ -2,37 +2,30 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <title>{% block title %}Eğitmen Paneli{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Eğitmen Merkezi{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-indigo-600">Eğitmen Merkezi</h1>
-        </div>
-
-        <div class="bg-white py-8 px-6 shadow-2xl rounded-xl sm:px-10">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
-                {% block heading %}Başlık{% endblock %}
-            </h2>
-            {% block content %}
-            {% endblock %}
-        </div>
-
-        <p class="mt-6 text-center text-sm text-gray-600">
-            {% if request.endpoint == 'login' %}
-                Hesabınız yok mu?
-                <a href="{{ url_for('register') }}" class="font-medium text-indigo-600 hover:text-indigo-500">Kayıt Ol</a>
-            {% elif request.endpoint == 'register' %}
-                Zaten hesabınız var mı?
-                <a href="{{ url_for('login') }}" class="font-medium text-indigo-600 hover:text-indigo-500">Giriş Yap</a>
-            {% endif %}
+<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+<div class="max-w-md w-full p-8 bg-white rounded-2xl shadow-xl border border-slate-200">
+    <div class="text-center mb-6">
+        <p class="text-xs font-semibold tracking-[0.14em] text-slate-400 uppercase">
+            Eğitmen Paneli
         </p>
+        <h1 class="text-2xl font-extrabold text-slate-900">
+            {% block heading %}{% endblock %}
+        </h1>
     </div>
+
+    {% block content %}{% endblock %}
+
+    <p class="mt-6 text-[11px] text-center text-slate-400">
+        Kişiselleştirilmiş soru öneri ve ödev sistemi.
+    </p>
+</div>
 </body>
 </html>

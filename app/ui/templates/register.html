@@ -1,31 +1,51 @@
 {% extends "auth_layout.html" %}
 
-{% block title %}Kayıt Ol{% endblock %}
+{% block title %}Kayıt Ol - Eğitmen Paneli{% endblock %}
 {% block heading %}Yeni Öğretmen Hesabı Oluştur{% endblock %}
 
 {% block content %}
     {% if error %}
-        <p class="text-red-500 text-center mb-4 text-sm font-medium">{{ error }}</p>
+        <p class="text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 text-xs font-medium mb-4 text-center">
+            {{ error }}
+        </p>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('register') }}">
+    <form method="POST" action="{{ url_for('register') }}" class="space-y-4">
 
-        <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700">E-posta Adresi</label>
-            <input type="email" id="email" name="email" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-green-500 focus:border-green-500 transition duration-150" placeholder="ayse.yilmaz@okul.edu">
+        <div>
+            <label for="email" class="block text-xs font-medium text-slate-600 mb-1.5">
+                E-posta Adresi
+            </label>
+            <input type="email" id="email" name="email" required
+                   class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm px-3 py-2 text-sm
+                          focus:ring-slate-900 focus:border-slate-900 transition"
+                   placeholder="ayse.yilmaz@okul.edu">
         </div>
 
-        <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700">Ad Soyad</label>
-            <input type="text" id="name" name="name" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-green-500 focus:border-green-500 transition duration-150" placeholder="Ayşe Yılmaz">
+        <div>
+            <label for="name" class="block text-xs font-medium text-slate-600 mb-1.5">
+                Ad Soyad
+            </label>
+            <input type="text" id="name" name="name" required
+                   class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm px-3 py-2 text-sm
+                          focus:ring-slate-900 focus:border-slate-900 transition"
+                   placeholder="Ayşe Yılmaz">
         </div>
 
-        <div class="mb-6">
-            <label for="password" class="block text-sm font-medium text-gray-700">Şifre Oluştur</label>
-            <input type="password" id="password" name="password" required class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-green-500 focus:border-green-500 transition duration-150" placeholder="••••••••">
+        <div>
+            <label for="password" class="block text-xs font-medium text-slate-600 mb-1.5">
+                Şifre Oluştur
+            </label>
+            <input type="password" id="password" name="password" required
+                   class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm px-3 py-2 text-sm
+                          focus:ring-slate-900 focus:border-slate-900 transition"
+                   placeholder="••••••••">
         </div>
 
-        <button type="submit" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+        <button type="submit"
+                class="w-full py-2.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold
+                       text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2
+                       focus:ring-offset-2 focus:ring-emerald-500 transition">
             Kayıt Ol
         </button>
     </form>
